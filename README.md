@@ -8,4 +8,4 @@ Week 2:
 
 Week 3:
   - Interactive Visual Analytics with Folium Lab
-  -
+  - Build an Interactive Dashboard with Plotly Dash
