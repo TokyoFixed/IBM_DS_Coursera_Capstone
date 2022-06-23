@@ -58,8 +58,8 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 # TASK 4:
 # Add a callback function for `site-dropdown` and `payload-slider` as inputs, `success-payload-scatter-chart` as output
 def update_output(value):
-    return f'You have selected'
+    return f'You have selected "{value}" as Launch Site'
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, threaded=True)
+    app.run_server(debug=True, threaded=True) #threaded=True
