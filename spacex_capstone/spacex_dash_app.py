@@ -41,10 +41,22 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
                                 html.Div(dcc.Graph(id='success-pie-chart')),
                                 html.Br(),
 
-                                html.P("TESTPayload range (Kg):"),
+                                html.P("Payload range (Kg):"),
                                 # TASK 3: Add a slider to select payload range
-                                #dcc.RangeSlider(id='payload-slider',...)
-
+                                dcc.RangeSlider(
+                                    id='payload-slider',
+                                    min=min_payload,
+                                    max=max_payload,
+                                    step=1000,
+                                    marks={0: '0',
+                                            10000: '10000', 
+                                            20000: '20000', 
+                                            30000: '30000',
+                                            40000: '40000', 
+                                            50000: '50000',
+                                            60000: '60000'},
+                                            value=[min_payload, max_payload]),
+                                
                                 # TASK 4: Add a scatter chart to show the correlation between payload and launch success
                                 html.Div(dcc.Graph(id='success-payload-scatter-chart')),
                                 ])
@@ -52,14 +64,38 @@ app.layout = html.Div(children=[html.H1('SpaceX Launch Records Dashboard',
 # TASK 2:
 # Add a callback function for `site-dropdown` as input, `success-pie-chart` as output
 @app.callback(
-    Output('dd-output-container', 'children'),
+    Output('success-pie-chart', 'figure'),
     Input('site-dropdown', 'value')
 )
+
+def update_pie_chart(selected_site):
+    if selected_site == 'ALL':
+        fig = px.pie(spacex_df, values='class', names='Launch Site', title='Total Success Launches By Site')
+    else:
+        filtered_df = spacex_df[spacex_df['Launch Site'] == selected_site]
+        filtered_df = filtered_df.groupby(['Launch Site', 'class']).size().reset_index(name='class count')
+        fig = px.pie(filtered_df, values='class count', names='class', title=f'Total Success Launches for site {selected_site}')
+    return fig
+
 # TASK 4:
 # Add a callback function for `site-dropdown` and `payload-slider` as inputs, `success-payload-scatter-chart` as output
-def update_output(value):
-    return f'You have selected "{value}" as Launch Site'
+@app.callback(
+    Output('success-payload-scatter-chart', 'figure'),
+    [Input('site-dropdown', 'value'), Input('payload-slider', 'value')]
+)
+
+def update_scatter_chart(selected_site, payload_range):
+    low, high = payload_range
+    filtered_df = spacex_df[(spacex_df['Payload Mass (kg)'] >= low) & (spacex_df['Payload Mass (kg)'] <= high)]
+    if selected_site != 'ALL':
+        filtered_df = filtered_df[filtered_df['Launch Site'] == selected_site]
+    fig = px.scatter(filtered_df, x='Payload Mass (kg)', y='class', color='Booster Version Category', title=f'Correlation between Payload and Success for site {selected_site}')
+    return fig
+
+## def update_output(value):
+##     return f'You have selected "{value}" as Launch Site'
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, threaded=True) #threaded=True
+    app.run_server(debug=True, threaded=True, host = '0.0.0.0', port=8050) #threaded=True
+    
